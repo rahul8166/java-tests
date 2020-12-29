@@ -1,5 +1,35 @@
-.classpath
+# Eclipse project files
 .project
+.classpath
 .settings
-.vscode
+
+# IntelliJ IDEA project files and directories
+*.iml
+*.ipr
+*.iws
+.idea/
+.shelf/
+
+# Build targets
 /target
+*/target
+
+# Report directories
+/reports
+*/reports
+
+# Mac-specific directory that no other operating system needs.
+.DS_Store
+
+# JVM crash logs
+hs_err_pid*.log
+
+dependency-reduced-pom.xml
+
+# exclude docker-sync stuff
+.docker-sync
+*/.docker-sync
+
+# exclude vscode files
+.vscode/
+*.factorypath
