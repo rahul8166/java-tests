@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Undertow WebSockets Example</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body>
+    <input type="text" id="message" value="Hello, World!" />
+    <input type="button" id="sendMsg" value="Send Web Socket Data" />
+    </br>
+    <div>
+        <ul id="receivedMsgList">
+            <!-- append li with received message -->
+        </ul>
+    </div>
+</body>
+<script type="application/javascript">
+    let socket;
+    if (window.WebSocket) {
+        socket = new WebSocket("ws://localhost:8779/myapp");
+        socket.onmessage = function (event) {
+            let ul = document.querySelector("#receivedMsgList");
+            let li = document.createElement("li");
+            li.appendChild(document.createTextNode(event.data));
+            ul.appendChild(li);
+        };
+        socket.onopen = function (event) {
+            console.log("Web Socket opened!");
+        };
+        socket.onclose = function (event) {
+            console.log("Web Socket closed.");
+        };
+    } else {
+        alert("Your browser does not support Websockets.");
+    }
+
+    function sendMsg() {
+        let msg = document.querySelector("#message").value;
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(msg);
+        } else {
+            alert("Let's wait for the web socket to open.");
+        }
+    }
+
+    document.querySelector("#message")
+        .addEventListener("keyup", function (event) {
+            event.preventDefault();
+            if (event.keyCode === 13) {
+                sendMsg();
+            }
+        });
+    document.querySelector("#sendMsg")
+        .addEventListener("click", function (event) {
+            sendMsg();
+        });
+</script>
+
+</html>
