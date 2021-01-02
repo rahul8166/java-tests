@@ -9,15 +9,24 @@
 </head>
 
 <body>
+    <h2>Websockets:</h2>
     <input type="text" id="message" value="Hello, World!" />
     <input type="button" id="sendMsg" value="Send Web Socket Data" />
-    </br>
-    <div>
+    <br />
+    <div id="msgHistory" style="height:200px;width: 500px; overflow: scroll;">
         <ul id="receivedMsgList">
             <!-- append li with received message -->
         </ul>
     </div>
+    <br />
+    <h2>Server Sent Events Chat:</h2>
+    <label>Message</label>
+    <input type="text" id="chatMsg" />
+    <div id="chatHistory" style="height:200px;width: 500px; overflow: scroll;">
+    </div>
+
 </body>
+<!-- Websockets script -->
 <script type="application/javascript">
     let socket;
     if (window.WebSocket) {
@@ -27,6 +36,7 @@
             let li = document.createElement("li");
             li.appendChild(document.createTextNode(event.data));
             ul.appendChild(li);
+            scrollToBottom('msgHistory');
         };
         socket.onopen = function (event) {
             console.log("Web Socket opened!");
@@ -43,8 +53,17 @@
         if (socket.readyState == WebSocket.OPEN) {
             socket.send(msg);
         } else {
-            alert("Let's wait for the web socket to open.");
+            let ul = document.querySelector("#receivedMsgList");
+            let li = document.createElement("li");
+            li.innerHTML = msg + '<br /><span style="color:red;padding-left:20px;font-size:10px;font-style: italic;">Let\'s wait for the web socket to open. \nCheck if the WebsocketServer is down.</span>';            
+            ul.appendChild(li);
+            scrollToBottom('msgHistory');
         }
+    }
+
+    function scrollToBottom(id) {
+        var div = document.getElementById(id);
+        div.scrollTop = div.scrollHeight - div.clientHeight;
     }
 
     document.querySelector("#message")
@@ -57,6 +76,50 @@
     document.querySelector("#sendMsg")
         .addEventListener("click", function (event) {
             sendMsg();
+        });
+</script>
+<!-- ServerSentEvents script -->
+<script type="application/javascript">
+    if (window.EventSource) {
+        const eventSource = new EventSource("sseHandler");
+        eventSource.onmessage = function (event) {
+            let chatHistory = document.querySelector("#chatHistory");
+            chatHistory.innerHTML += event.data + "<br />";
+            scrollToBottom('chatHistory');
+        };
+    } else {
+        alert("Your browser does not support SSE (ServerSentEvents).");
+    }
+
+    function sendChatMsg() {
+        let chatMsg = document.querySelector("#chatMsg").value;
+        fetch('sendChatMsg', {
+            method: 'post',
+            body: chatMsg
+        }).then(async (response) => {
+            // status 404 or 500 will set ok to false
+            if (response.ok) {
+                // Success: convert data received & run callback
+            }else {
+                let chatHistory = document.querySelector("#chatHistory");
+                chatHistory.innerHTML += chatMsg + '<br />'
+                chatHistory.innerHTML += '<span style="color:red;padding-left:20px;font-size:10px;font-style: italic;">Failed to send chat message due to error :' + response.status + ':' + response.statusText + '</span><br />';
+                scrollToBottom('chatHistory');
+            }
+        }).catch(e => {
+            let chatHistory = document.querySelector("#chatHistory");
+            chatHistory.innerHTML += chatMsg + '<br />'
+            chatHistory.innerHTML += '<span style="color:red;padding-left:20px;font-size:10px;font-style: italic;">Failed to send chat message due to error :' + e + '</span><br />';
+            scrollToBottom('chatHistory');
+        })
+    }
+
+    document.querySelector("#chatMsg")
+        .addEventListener("keyup", function (event) {
+            event.preventDefault();
+            if (event.keyCode === 13) {
+                sendChatMsg();
+            }
         });
 </script>
 
